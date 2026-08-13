@@ -1,0 +1,19 @@
+{
+  "name": "rundownrec",
+  "version": "1.0.0",
+  "description": "Localhost server emulator for 2019 builds.",
+  "main": "setup.js",
+  "scripts": {
+    "start": "node setup.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "morgan": "^1.10.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  },
+  "author": "rozodevhu",
+  "license": "MIT"
+}
