@@ -10,7 +10,6 @@ echo  ▒█░▒█ ░▀▄▄▄▀ ▒█░░▀█ ▒█▄▄▀ ▒�
 echo ==================================================================
 echo.
 
-:: Environment Checkers
 where node >nul 2>nul
 if %errorlevel% neq 0 (
     echo [ERROR] Node.js is not installed! Check: https://nodejs.org
@@ -31,29 +30,31 @@ echo ==================================================================
 echo                 RUNDOWNREC WINDOWS LAUNCHER MENU
 echo ==================================================================
 echo.
-echo  [1] Start Automated Wizard (node setup.js)
-echo  [2] Run Server Core Instantly (node server.js)
-echo  [3] Run Client Binary Patcher Utility
-echo  [4] Backup Server Database & Rooms
-echo  [5] Restore Server Database from Backup
-echo  [6] Find Local Network IP (For LAN Multiplayer)
-echo  [7] Launch Patched Rec Room Client Build
-echo  [8] Exit
+echo  1. Start Automated Wizard Launcher (node setup.js)
+echo  2. Run Server Core Instantly (node server.js)
+echo  3. Start Standalone Discord Camera Bot (node discord_camera_bot.js)
+echo  4. Run Client Binary Patcher Utility
+echo  5. Backup Server Database & Rooms
+echo  6. Restore Server Database from Backup
+echo  7. Find Local Network IP (For LAN Multiplayer)
+echo  8. Launch Patched Rec Room Client Build
+echo  9. Exit
 echo.
 echo ==================================================================
-set /p choice="Enter selection [1-8]: "
+set /p choice="Enter selection [1-9]: "
 
 if "%choice%"=="1" (cls & call npm start & pause & goto menu)
 if "%choice%"=="2" (cls & echo Starting RunDownRec Server... & node server.js & pause & goto menu)
+if "%choice%"=="3" (cls & echo Starting Camera Service... & node discord_camera_bot.js & pause & goto menu)
 
-if "%choice%"=="3" (
+if "%choice%"=="4" (
     cls
     if %HAS_PYTHON%==0 (echo [ERROR] Python is required! & pause & goto menu)
     python tools/patch_engine.py
     pause & goto menu
 )
 
-if "%choice%"=="4" (
+if "%choice%"=="5" (
     cls
     echo [+] Creating a snapshot of rundown_database.db...
     if not exist backups mkdir backups
@@ -63,7 +64,7 @@ if "%choice%"=="4" (
     pause & goto menu
 )
 
-if "%choice%"=="5" (
+if "%choice%"=="6" (
     cls
     if not exist backups\rundown_database_bak.db (
         echo [ERROR] No backup snapshot found to restore!
@@ -75,11 +76,11 @@ if "%choice%"=="5" (
         copy /y backups\rundown_database_bak.db rundown_database.db >nul
         copy /y backups\config_bak.json config.json >nul
         echo [SUCCESS] Previous profile data restored successfully!
-    }
+    )
     pause & goto menu
 )
 
-if "%choice%"=="6" (
+if "%choice%"=="7" (
     cls
     echo ==================================================================
     echo                     LAN MULTIPLAYER DISCOVERY
@@ -95,7 +96,7 @@ if "%choice%"=="6" (
     pause & goto menu
 )
 
-if "%choice%"=="7" (
+if "%choice%"=="8" (
     cls
     set /p gamepath="Drag-and-drop or type your RecRoom.exe location (Leave blank for local directory): "
     if "!gamepath!"=="" (set TARGET_EXE=RecRoom.exe) else (set TARGET_EXE=!gamepath!)
@@ -110,5 +111,5 @@ if "%choice%"=="7" (
     pause & goto menu
 )
 
-if "%choice%"=="8" (echo Exiting workspace. Have fun preserving! & exit)
+if "%choice%"=="9" (echo Exiting workspace. Have fun preserving! & exit)
 goto menu
