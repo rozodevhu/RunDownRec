@@ -1,11 +1,8 @@
-# Dependencies
 node_modules/
 npm-debug.log*
-
-# Databases and Runtime Local State
 *.db
 *.db-journal
-
-# Operating System Files
+backups/
+config.json
 .DS_Store
 Thumbs.db
