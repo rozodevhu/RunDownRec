@@ -1,7 +1,7 @@
 {
   "name": "rundownrec",
   "version": "1.0.0",
-  "description": "Localhost server emulator for 2019 builds.",
+  "description": "An open-source localhost server emulator and client patcher for 2019 builds.",
   "main": "setup.js",
   "scripts": {
     "start": "node setup.js"
