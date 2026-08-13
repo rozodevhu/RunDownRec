@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# Databases and Runtime Local State
+*.db
+*.db-journal
+
+# Operating System Files
+.DS_Store
+Thumbs.db
