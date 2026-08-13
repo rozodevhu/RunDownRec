@@ -1,8 +1,3 @@
-// ============================================================================
-// RUNDOWNREC AUTOMATED SETUP & CONTROLLER MENU
-// Run this file using: node setup.js or npm start
-// ============================================================================
-
 const fs = require('fs');
 const readline = require('readline');
 const { execSync } = require('child_process');
@@ -19,7 +14,6 @@ const rl = readline.createInterface({
 
 const askQuestion = (query) => new Promise((resolve) => rl.question(query, resolve));
 
-// Visual Anchor ASCII Banner for RunDownRec
 function printBanner() {
     console.clear();
     console.log(`\x1b[36m`);
@@ -48,7 +42,7 @@ async function verifyDependencies() {
 
 async function handleConfiguration() {
     console.log(`\n[2/4] Resolving configuration files...`);
-    let currentConfig = { port: 2059, startingTokens: 50000, developerName: "RunDownDev" };
+    let currentConfig = { port: 2059, startingTokens: 50000, developerName: "RunDownDev", discordWebhookUrl: "YOUR_DISCORD_WEBHOOK_URL_HERE" };
 
     if (fs.existsSync(CONFIG_PATH)) {
         currentConfig = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
@@ -67,18 +61,16 @@ async function initializeDatabase(config) {
     await db.exec(`
         CREATE TABLE IF NOT EXISTS players (id INTEGER PRIMARY KEY, username TEXT, displayName TEXT, xp INTEGER, level INTEGER, tokens INTEGER);
         CREATE TABLE IF NOT EXISTS rooms (id TEXT PRIMARY KEY, name TEXT, description TEXT, creatorId INTEGER, maxPlayers INTEGER, sceneName TEXT);
+        CREATE TABLE IF NOT EXISTS relationships (id INTEGER PRIMARY KEY AUTOINCREMENT, playerId INTEGER, targetId INTEGER, type INTEGER);
+        CREATE TABLE IF NOT EXISTS outfits (playerId INTEGER PRIMARY KEY, skinColor INTEGER, hair INTEGER, face INTEGER, costume TEXT);
     `);
 
     const checkPlayer = await db.get('SELECT * FROM players WHERE id = 1');
     if (!checkPlayer) {
-        await db.run(
-            'INSERT INTO players (id, username, displayName, xp, level, tokens) VALUES (1, ?, ?, 99999, 50, ?)',
-            [config.developerName, `${config.developerName} Creator`, config.startingTokens]
-        );
+        await db.run('INSERT INTO players (id, username, displayName, xp, level, tokens) VALUES (1, ?, ?, 99999, 50, ?)', [config.developerName, `${config.developerName} Creator`, config.startingTokens]);
         await db.run('INSERT INTO rooms (id, name, description, creatorId, maxPlayers, sceneName) VALUES ("dorm", "DormRoom", "Your private home.", 1, 1, "DormRoom")');
+        await db.run('INSERT INTO outfits (playerId, skinColor, hair, face, costume) VALUES (1, 1, 1, 1, "[]")');
         console.log(`\x1b[32m[+] Created base schema profiles with customized token values.\x1b[0m`);
-    } else {
-        console.log(`[+] Database file clean and running.`);
     }
     await db.close();
 }
@@ -89,7 +81,7 @@ async function interactiveMenu() {
 
     console.log(`\nChoose an action profile item from the dashboard:`);
     console.log(` 🚀 1. Boot up RunDownRec Live Environment`);
-    console.log(` ⚙️  2. Customize Server Configuration (Port, Tokens, Username)`);
+    console.log(` ⚙️  2. Customize Server Configuration (Port, Tokens, Username, Webhook)`);
     console.log(` 🧹 3. Wipe Database Reset (Fresh Install)`);
     console.log(` ❌ 4. Close Setup Wizard`);
 
@@ -108,28 +100,29 @@ async function interactiveMenu() {
         const newPort = await askQuestion(`Change API Port [Current: ${config.port}]: `) || config.port;
         const newName = await askQuestion(`Developer Profile Username [Current: ${config.developerName}]: `) || config.developerName;
         const newTokens = await askQuestion(`Starting Token Balance [Current: ${config.startingTokens}]: `) || config.startingTokens;
+        const newWebhook = await askQuestion(`Discord Webhook URL [Current: ${config.discordWebhookUrl}]: `) || config.discordWebhookUrl;
 
         const updatedConfig = {
             port: parseInt(newPort),
             startingTokens: parseInt(newTokens),
-            developerName: newName
+            developerName: newName,
+            discordWebhookUrl: newWebhook
         };
 
         fs.writeFileSync(CONFIG_PATH, JSON.stringify(updatedConfig, null, 4));
-        console.log(`\x1b[32m\n[+] Settings saved to config.json. Realignment complete!\x1b[0m`);
         
         if (fs.existsSync(DB_PATH)) {
             const db = await open({ filename: DB_PATH, driver: sqlite3.Database });
             await db.run('UPDATE players SET username = ?, displayName = ?, tokens = ? WHERE id = 1', [newName, `${newName} Creator`, parseInt(newTokens)]);
             await db.close();
-            console.log(`\x1b[32m[+] Database tables realigned with new profile data.\x1b[0m`);
         }
 
+        console.log(`\x1b[32m\n[+] Settings saved to config.json. Realignment complete!\x1b[0m`);
         await askQuestion(`\nPress Enter to return to the core dashboard menu...`);
         interactiveMenu();
 
     } else if (selection === '3') {
-        const confirm = await askQuestion(`\n\x1b[31m[WARNING] Are you sure you want to delete all custom rooms and data? (y/N): \x1b[0m`);
+        const confirm = await askQuestion(`\n\x1b[31m[WARNING] Are you sure you want to delete all data? (y/N): \x1b[0m`);
         if (confirm.toLowerCase() === 'y') {
             if (fs.existsSync(DB_PATH)) fs.unlinkSync(DB_PATH);
             if (fs.existsSync(CONFIG_PATH)) fs.unlinkSync(CONFIG_PATH);
@@ -139,13 +132,11 @@ async function interactiveMenu() {
         interactiveMenu();
 
     } else {
-        console.log(`Exiting control console workspace.`);
         rl.close();
         process.exit(0);
     }
 }
 
 interactiveMenu().catch(err => {
-    console.error("Setup Wizard tracking exception:", err);
     rl.close();
 });
